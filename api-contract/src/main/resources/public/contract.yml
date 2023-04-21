@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: intra bank accounts
+  description: |-
+    This api is used for following:
+    1. intra bank account money transfer
+    2. See last 20 transactions
+    3. get account balance
+servers:
+  - url: /accounts
+paths:
+  '/{accountId}/balance':
+    get:
+      summary: get the account balance of the account Id
+      operationId: getAccountBalance
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: service responded successfully
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/Accounts'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  '/{accountId}/statements/mini':
+    get:
+      summary: get the last 20 transactions of the account
+      operationId: getMiniTransactions
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: service responded successfully
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/Transactions'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  '/transfer':
+    post:
+      summary: transfer money into another account
+      operationId: transfer
+      requestBody:
+        content:
+          application/json;charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/Transfer'
+        description: Request Body containing transfer info
+        required: true
+      responses:
+        '200':
+          description: service responded successfully
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  parameters:
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      description: the accountId for which to see the balance of
+      schema:
+        type: string
+  schemas:
+    Accounts:
+      type: object
+      properties:
+        account-Id:
+          type: integer
+          description: |-
+            Account id
+        balance:
+          type: integer
+          description: |-
+            balance in the account
+        currency:
+          type: string
+          description: |-
+            currency type of the account
+    Transactions:
+      type: array
+      description: |-
+        Transaction object
+      items:
+        $ref: '#/components/schemas/Transaction'
+    Transaction:
+      type: object
+      properties:
+        account-Id:
+          type: integer
+          description: |-
+            Id of the first account
+        amount:
+          type: integer
+          description: |-
+            Amount transferred in the transaction
+        currency:
+          type: string
+          description: |-
+            currency type used in the transaction
+        type:
+          type: string
+          description: |-
+            type of the transaction, debit or credit
+        transaction-date:
+          type: string
+          format: date
+          description: |-
+            date of the transaction
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Error message
+    Transfer:
+      type: object
+      properties:
+        fromAccount:
+          type: string
+          description: |-
+            Sender Account id
+        toAccount:
+          type: string
+          description: |-
+            Receiver Account id
+        amount:
+          type: integer
+          description: |-
+            money to be transferred
+  responses:
+    '400':
+      description: Bad Request
+      content:
+        application/json;charset=UTF-8:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    '404':
+      description: Not found
+      content:
+        application/json;charset=UTF-8:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    '500':
+      description: Internal server error
+      content:
+        application/json;charset=UTF-8:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
